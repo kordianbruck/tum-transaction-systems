@@ -3,6 +3,7 @@
 //Is using the directed graph lib: sudo pear install Structures_Graph - https://pear.php.net/package/Structures_Graph/download
 
 $input = 'w 1 x r 2 x w 2 y r 3 y w 3 z r 1 z';
+//$input = 'r 1 x w 1 y r 2 y w 2 x';
 
 // ---- Do not edit ----
 require_once 'Structures/Graph.php';
@@ -17,7 +18,7 @@ $graph = new Structures_Graph(true); //True for directed graph
 
 //Build an array for each variable that we want to access
 for ($i = 0; $i < count($inputArr); $i += 3) {
-    $in[$inputArr[$i + 2]][] = ['o' => $inputArr[$i], 't' => intval($inputArr[$i + 1])];
+    $in[] = ['o' => $inputArr[$i], 't' => intval($inputArr[$i + 1]), 'v' => $inputArr[$i + 2]];
     $transactions[] = $inputArr[$i + 1];
 }
 
@@ -28,29 +29,27 @@ foreach ($transactions as $t) {
     $graph->addNode($nodes[$t]);
 }
 
-//Go through all operations for each var and add edges to the graph
-$edges = [];
-foreach ($in as $ops) {
-    $edges[] = checkDependency($ops);
+//Check that if two operations are in conflict
+function check($curr, $next) {
+    if($curr['t'] === $next['t']) {
+        return false;
+    }
+    if($curr['v'] !== $next['v']) {
+        return false;
+    }
+    if($curr['o'] === 'r' && $next['o'] === 'r' ) {
+        return false;
+    }
+    return true;
 }
 
-//Our magic to create the edges
-function checkDependency($ops, $prev = null) {
-    global $nodes;
-    if ($prev === null) {
-        $current = array_shift($ops);
-        checkDependency($ops, $current);
+//Go through all operations for each var and add edges to the graph
+for ($i = 0; $i < count($in); $i++) {
+    for ($j = $i + 1; $j < count($in); $j++) {
+        if(check($in[$i], $in[$j])) {
+            $nodes[$in[$i]['t']]->connectTo($nodes[$in[$j]['t']]);
+        }
     }
-    if (count($ops) == 0) {
-        return;
-    }
-    $current = array_shift($ops);
-    if ($prev['o'] === 'w' && $current['o'] === 'r') {
-        $nodes[$prev['t']]->connectTo($nodes[$current['t']]);
-    } elseif ($prev['o'] === 'r' && $current['o'] === 'w') {
-        $nodes[$current['t']]->connectTo($nodes[$prev['t']]);
-    }
-    checkDependency($ops, $current);
 }
 
 //Use the manipulator by the lib to finish this task
