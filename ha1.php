@@ -34,7 +34,7 @@ foreach ($in as $ops) {
     $edges[] = checkDependency($ops);
 }
 
-//Our magic
+//Our magic to create the edges
 function checkDependency($ops, $prev = null) {
     global $nodes;
     if ($prev === null) {
@@ -47,13 +47,12 @@ function checkDependency($ops, $prev = null) {
     $current = array_shift($ops);
     if ($prev['o'] === 'w' && $current['o'] === 'r') {
         $nodes[$prev['t']]->connectTo($nodes[$current['t']]);
-        echo $prev['t'] . '->' . $current['t'];
     } elseif ($prev['o'] === 'r' && $current['o'] === 'w') {
         $nodes[$current['t']]->connectTo($nodes[$prev['t']]);
-        echo $current['t'] . '->' . $prev['t'];
     }
     checkDependency($ops, $current);
 }
 
+//Use the manipulator by the lib to finish this task
 $t = new Structures_Graph_Manipulator_AcyclicTest();
 var_dump($t->isAcyclic($graph));
